@@ -1,0 +1,34 @@
+version: "3.8"
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: fast_api
+      DB_USER: has
+      DB_PASSWORD: has
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: fast_api
+      POSTGRES_USER: has
+      POSTGRES_PASSWORD: has
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:

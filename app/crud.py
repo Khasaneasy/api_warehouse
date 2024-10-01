@@ -7,6 +7,7 @@ from fastapi import HTTPException
 
 
 async def create_product(db: AsyncSession, product: ProductCreate):
+    """Создание продкута."""
     db_product = Product(**product.dict())
     db.add(db_product)
     await db.commit()
@@ -15,6 +16,7 @@ async def create_product(db: AsyncSession, product: ProductCreate):
 
 
 async def get_product(db: AsyncSession, product_id: int):
+    """Доступ к продкуту по ID."""
     result = await db.execute(select(Product).where(Product.id == product_id))
     product = result.scalar_one_or_none()
     if product is None:
@@ -23,6 +25,7 @@ async def get_product(db: AsyncSession, product_id: int):
 
 
 async def get_products(db: AsyncSession):
+    """Получение списка продуктов."""
     result = await db.execute(select(Product))
     return result.scalars().all()
 
@@ -30,6 +33,7 @@ async def get_products(db: AsyncSession):
 async def update_product(
         db: AsyncSession, product_id: int,
         product_update: ProductUpdate):
+    """Обновление продукта по ID."""
     product = await get_product(db, product_id)
     for key, value in product_update.dict(exclude_unset=True).items():
         setattr(product, key, value)
@@ -39,13 +43,14 @@ async def update_product(
 
 
 async def delete_product(db: AsyncSession, product_id: int):
+    """Удаление продкута по ID."""
     product = await get_product(db, product_id)
     await db.delete(product)
     await db.commit()
 
 
 async def create_order(db: AsyncSession, order_data: OrderCreate):
-    """Проверка наличия товара и доступного количества."""
+    """Создание, проверка наличия товара и доступного количества."""
 
     for item in order_data.items:
         product = await get_product(db, item.product_id)
@@ -75,6 +80,7 @@ async def create_order(db: AsyncSession, order_data: OrderCreate):
 
 
 async def get_order(db: AsyncSession, order_id: int):
+    """Извлечение заказа по ID."""
     result = await db.execute(
         select(Order).options(joinedload(Order.order_items))
         .where(Order.id == order_id)
@@ -86,11 +92,13 @@ async def get_order(db: AsyncSession, order_id: int):
 
 
 async def get_orders(db: AsyncSession):
+    """Получение списка заказов."""
     result = await db.execute(select(Order))
     return result.scalars().all()
 
 
 async def update_order_status(db: AsyncSession, order_id: int, status: str):
+    """Обновление статуса заказа."""
     order = await get_order(db, order_id)
     order.status = status
     await db.commit()
